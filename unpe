@@ -1,0 +1,39 @@
+def UNPE(X,k):
+  N=X.shape[0]
+    # Compute k nearest neighbors to each point
+  k = 24
+  nbors = neighbors.kneighbors_graph(X, n_neighbors = k)
+  # Compute reconstruction weights
+  W = np.zeros((N, N))
+  #N=X.shape
+  #W=np.zeros((N, N))
+  for i, nbor_row in enumerate(nbors):
+      # Get the indices of the nonzero entries in each row of the
+      # neighbors matrix (which is sparse). These are the nearest
+      # neighbors to the point in question. dim(Z) = [K, D]
+      inds = nbor_row.indices
+      Z = X[inds] - X[i]
+
+      # Local covariance. Regularize because our data is
+      # low-dimensional (K > D). dim(C) = [K, K]
+      C = Z @ Z.T
+      c1= np.eye(k) * np.diag(C)
+      C+c1
+
+      # Compute reconstruction weights
+      w = scipy.linalg.solve(C, np.ones(k))
+      W[i, inds] = w / sum(w)
+
+    # Compute Sparse matrix
+      # Create sparse, symmetric matrix
+  M = (np.eye(W.shape[0]) - W).T @ (np.eye(W.shape[0]) - W)
+  M = M.T
+  T1=(X@(X.T))@M
+  T2=X@(X.T)
+  T=scipy.linalg.inv(T2)@(T1)
+  epsilon = 0.00001  #--> to prevent singularity of matrix N
+  eig_val, eig_vec = scipy.linalg.eigh(scipy.linalg.inv(T + epsilon*np.eye(T.shape[0])))
+  eigValInd=np.argsort(eig_val)
+  eigValInd=eigValInd[:(-k-1):-1]
+  X_Unpe=eig_vec[:,eigValInd]
+  return X_Unpe
