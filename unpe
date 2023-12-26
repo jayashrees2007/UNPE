@@ -1,7 +1,7 @@
 def UNPE(X,k):
   N=X.shape[0]
     # Compute k nearest neighbors to each point
-  k = 24
+  k = 3
   nbors = neighbors.kneighbors_graph(X, n_neighbors = k)
   # Compute reconstruction weights
   W = np.zeros((N, N))
